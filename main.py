@@ -1,4 +1,5 @@
 import copy
+from collections import deque
 
 
 class FifteenPuzzleSolver():
@@ -182,7 +183,7 @@ class FifteenPuzzleSolver():
             layer_quantity = 1
             max_depth = 0
 
-            stack = [([], self.board)]  # list of (path, board)
+            stack = deque([([], self.board)])  # list of (path, board)
 
             threshold = smallest_f_gt_threshold or self.マンハッタン距離(self.board, self.solution)
             smallest_f_gt_threshold = None
@@ -190,10 +191,10 @@ class FifteenPuzzleSolver():
             print(f"{threshold = }")
             while stack:
                 # print(len(stack))
-                first = stack.pop(0)
-                path = first[0]
+                top = stack.pop()
+                path = top[0]
                 g = len(path)
-                board = first[1]
+                board = top[1]
                 f = g + self.マンハッタン距離(board, self.solution)
 
                 if f - 0.000001 > threshold:  # small bias for preventing float accuracy related bugs
@@ -212,7 +213,7 @@ class FifteenPuzzleSolver():
                         if last_move_number == new_move_number:
                             continue
                     new_path = path + [move]
-                    stack.insert(0, (new_path, new_board))
+                    stack.append((new_path, new_board))
                     layer_quantity += 1
                     if len(new_path) > max_depth:
                         max_depth = len(new_path)
