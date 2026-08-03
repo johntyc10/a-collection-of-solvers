@@ -35,7 +35,7 @@ cd a-collection-of-solvers
 git checkout <branch_name>
 ```
 
-All per-solver how to use instructions assumes you followed the above instructions and is in the solver branch. You can find the per-solver instructions in README.md inside the branch.
+And then follow the per-solver instructions in the README.md. All per-solver instructions assumes you followed the above instructions and is in the solver branch.
 
 Each branch is a self-contained project with its own code, README, and history.
 
