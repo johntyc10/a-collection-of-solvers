@@ -2,6 +2,12 @@ import copy
 from collections import deque
 
 
+class Node():
+    def __init__(self, parent=None, move=None):
+        self.parent = parent
+        self.move = move
+
+
 class FifteenPuzzleSolver():
     def __init__(self) -> None:
         ...
@@ -159,7 +165,27 @@ class FifteenPuzzleSolver():
                 return False
         return True
 
+    def 線性衝突次數(self, board: list[list[str]]) -> int:
+        linear_conflict_count = 0
+
+        # row
+        for i in range(self.y):
+            row = board[i]
+            linear_conflict_count += self.count_inversions([item for item in row if item in self.solution[i]])
+
+        # column
+        for j in range(self.x):
+            board_col = []
+            sol_col = []
+            for i in range(self.y):
+                board_col.append(board[i][j])
+                sol_col.append(self.solution[i][j])
+            linear_conflict_count += self.count_inversions([item for item in board_col if item in sol_col])
+
+        return linear_conflict_count
+
     def マンハッタン距離(self, board: list[list[str]], target: list[list[str]]) -> int:
+        # TODO: incremental manhattan distance calculation
         # precompute lookup table
         board_element_coords = dict()
         target_element_coords = dict()
@@ -175,9 +201,10 @@ class FifteenPuzzleSolver():
                 x2, y2 = target_element_coords[board[i][j]]
                 total_manhattan_dist += abs(x2 - x1) + abs(y2 - y1)
 
-        return total_manhattan_dist
+        return total_manhattan_dist + self.線性衝突次數(board) * 2
 
     def 迭代加深A星算法(self) -> list[tuple[str, str]]:  # f = g + h <= threshold
+        # TODO: Use parent pointer and reconstruct path instead of list copying
         smallest_f_gt_threshold = None
         while 1:
             layer_quantity = 1
