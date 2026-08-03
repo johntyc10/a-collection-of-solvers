@@ -33,13 +33,69 @@ class FifteenPuzzleSolver():
         default_solution[self.y - 1][self.x - 1] = "_"
         return default_solution
 
+    def count_and_merge(self, arr, l, m, r):
+        # Counts in two subarrays
+        n1 = m - l + 1
+        n2 = r - m
+
+        # Set up two lists for left and right halves
+        left = arr[l:m + 1]
+        right = arr[m + 1:r + 1]
+
+        # Initialize inversion count (or result)
+        # and merge two halves
+        res = 0
+        i = 0
+        j = 0
+        k = l
+        while i < n1 and j < n2:
+
+            # No increment in inversion count
+            # if left[] has a smaller or equal element
+            if left[i] <= right[j]:
+                arr[k] = left[i]
+                i += 1
+            else:
+                arr[k] = right[j]
+                j += 1
+                res += (n1 - i)
+            k += 1
+
+        # Merge remaining elements
+        while i < n1:
+            arr[k] = left[i]
+            i += 1
+            k += 1
+        while j < n2:
+            arr[k] = right[j]
+            j += 1
+            k += 1
+
+        return res
+
+    # Function to count inversions in the array
+    def count_inv(self, arr, l, r):
+        res = 0
+        if l < r:
+            m = (r + l) // 2
+
+            # Recursively count inversions
+            # in the left and right halves
+            res += self.count_inv(arr, l, m)
+            res += self.count_inv(arr, m + 1, r)
+
+            # Count inversions such that greater element is in
+            # the left half and smaller in the right half
+            res += self.count_and_merge(arr, l, m, r)
+        return res
+
+    def count_inversions(self, arr):
+        return self.count_inv(arr, 0, len(arr) - 1)
+
     def is_board_solvable(self):
         flattened_board = [item for sublist in self.board for item in sublist]
         flattened_board_without_blank = [item for item in flattened_board if item != "_"]
-        inversion_count = 0
-        for i in range(len(flattened_board_without_blank) - 1):
-            if flattened_board_without_blank[i] > flattened_board_without_blank[i + 1]:
-                inversion_count += 1
+        inversion_count = self.count_inversions(flattened_board_without_blank)
 
         width = self.x
         if width % 2 == 1:
@@ -47,9 +103,10 @@ class FifteenPuzzleSolver():
         else:
             blank_row_index = -1
             for i in range(len(self.board)):
-                if "_" in self.board:
+                if "_" in self.board[i]:
                     blank_row_index = i
                     break
+            assert blank_row_index != -1
             blank_row_from_bottom = len(self.board) - blank_row_index
 
             return (inversion_count + blank_row_from_bottom) % 2 == 0
