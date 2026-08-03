@@ -2,12 +2,6 @@ import copy
 from collections import deque
 
 
-class Node():
-    def __init__(self, parent=None, move=None):
-        self.parent = parent
-        self.move = move
-
-
 class FifteenPuzzleSolver():
     def __init__(self) -> None:
         ...
@@ -210,18 +204,19 @@ class FifteenPuzzleSolver():
             layer_quantity = 1
             max_depth = 0
 
-            stack = deque([([], self.board)])  # list of (path, board)
+            stack = deque()  # list of (path, board)
+            stack.append((self.board, None, None, 0))  # board, parent, move, depth
 
             threshold = smallest_f_gt_threshold or self.マンハッタン距離(self.board, self.solution)
             smallest_f_gt_threshold = None
             print("--------------")
             print(f"{threshold = }")
             while stack:
-                # print(len(stack))
-                top = stack.pop()
-                path = top[0]
-                g = len(path)
-                board = top[1]
+                current = stack.pop()
+                current_move = current[2]
+                current_depth = current[3]
+                g = current_depth + 1
+                board = current[0]
                 f = g + self.マンハッタン距離(board, self.solution)
 
                 if f - 0.000001 > threshold:  # small bias for preventing float accuracy related bugs
@@ -230,24 +225,31 @@ class FifteenPuzzleSolver():
                     continue
 
                 if self.is_board_solution(board):
-                    return path
+                    return self.reconstruct_path(current)
 
                 _next_moves = self.next_moves(board)
                 for move, new_board in _next_moves:
-                    if path:
-                        last_move_number = path[-1][0]
+                    if current_move is not None:
+                        last_move_number = current_move[0]
                         new_move_number = move[0]
                         if last_move_number == new_move_number:
                             continue
-                    new_path = path + [move]
-                    stack.append((new_path, new_board))
+                    child = (new_board, current, move, current_depth + 1)
+                    stack.append(child)
                     layer_quantity += 1
-                    if len(new_path) > max_depth:
-                        max_depth = len(new_path)
-                    # pprint(stack)
+                    if current_depth > max_depth:
+                        max_depth = current_depth
             print(f"{smallest_f_gt_threshold = }")
             print(f"Looked through {layer_quantity} nodes, max depth = {max_depth}")
 
+    def reconstruct_path(self, target_node):
+        path = []
+        node = target_node
+        while node[1] is not None:
+            path.append(node[2])
+            node = node[1]
+        path.reverse()
+        return path
 
     def get_user_input(self) -> tuple[tuple[int, int], list[list[str]]]:
         """
