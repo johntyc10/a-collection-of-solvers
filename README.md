@@ -16,15 +16,23 @@ Each solver lives on its own branch so the full development history of every pro
 
 For a quick search, press Ctrl+F to search for a puzzle you are looking for.
 
-To use a specific solver (eg. wordle solver):
+To use a specific solver, either:
 
 ```
-# Clone the repository
+# Clone a single branch (Recommended)
+git clone -b <branch_name> --single-branch https://github.com/johntyc10/a-collection-of-solvers.git <branch_name>
+cd <branch_name>
+```
+
+OR
+
+```
+# Clone the whole repository
 git clone https://github.com/johntyc10/a-collection-of-solvers.git
 cd a-collection-of-solvers
 
-# Switch to a specific solver (eg. wordle solver)
-git checkout wordle-solver
+# Switch to a specific solver
+git checkout <branch_name>
 ```
 
 All per-solver how to use instructions assumes you followed the above instructions and is in the solver branch. You can find the per-solver instructions in README.md inside the branch.
