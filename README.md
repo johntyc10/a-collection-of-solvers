@@ -4,17 +4,9 @@ A collection of solvers for various minigames and puzzles.
 
 Each solver lives on its own branch so the full development history of every project is preserved.
 
-## Solvers
-
-| Branch | Game / Puzzle | Language | Status | Description |
-| --- | --- | --- | --- | --- |
-| `wordle-solver` | wordle | Python | Finished | Solves wordle using information theory |
-| `poople-solver` | poople | Python | Finished | Solves poople efficiently with BFS |
-| `15-puzzle-solver` | 15 puzzle | Python | Unfinished | Solves 15 puzzle |
-
 ## How to search and use a solver
 
-For a quick search, press Ctrl+F to search for a puzzle you are looking for.
+For a quick search, press Ctrl+F to search for a puzzle you are looking for, or just use your eyes if you feel like it
 
 To use a specific solver, either:
 
@@ -39,9 +31,17 @@ And then follow the per-solver instructions in the README.md. All per-solver ins
 
 Each branch is a self-contained project with its own code, README, and history.
 
-## Philosophy
+## Philosophy: Minimal AI Usage
 
-**Note:** These projects are mostly written by hand. AI tools may have been used occasionally for small suggestions, debugging, or writing READMEs, but the core logic, structure, and algorithms are human-written and human-approved.
+These projects are mostly written by hand. AI tools may have been used occasionally for small suggestions, debugging, or writing READMEs, but the core logic, structure, and algorithms are human-written and human-approved.
+
+## Solvers
+
+| Branch | Game / Puzzle | Language | Status | Description |
+| --- | --- | --- | --- | --- |
+| `wordle-solver` | wordle | Python | Finished | Solves wordle using information theory |
+| `poople-solver` | poople | Python | Finished | Solves poople efficiently with BFS |
+| `15-puzzle-solver` | 15 puzzle | Python | Developing | Solves 15 puzzle using IDA* algorithm |
 
 ## Contributions
 
