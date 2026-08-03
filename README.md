@@ -31,6 +31,10 @@ All per-solver how to use instructions assumes you followed the above instructio
 
 Each branch is a self-contained project with its own code, README, and history.
 
+## Philosophy
+
+**Note:** These projects are mostly written by hand. AI tools may have been used occasionally for small suggestions, debugging, or writing READMEs, but the core logic, structure, and algorithms are human-written and human-approved.
+
 ## Contributions
 
 Contributions are welcome! Feel free to open issues, suggest new solvers, improve existing ones, or submit pull requests.
