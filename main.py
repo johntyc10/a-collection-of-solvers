@@ -1,5 +1,4 @@
 import copy
-from pprint import pprint
 
 
 class FifteenPuzzleSolver():
@@ -94,7 +93,7 @@ class FifteenPuzzleSolver():
 
     def is_board_solvable(self):
         flattened_board = [item for sublist in self.board for item in sublist]
-        flattened_board_without_blank = [item for item in flattened_board if item != "_"]
+        flattened_board_without_blank = [int(item) for item in flattened_board if item != "_"]
         inversion_count = self.count_inversions(flattened_board_without_blank)
 
         width = self.x
@@ -109,7 +108,7 @@ class FifteenPuzzleSolver():
             assert blank_row_index != -1
             blank_row_from_bottom = len(self.board) - blank_row_index
 
-            return (inversion_count + blank_row_from_bottom) % 2 == 0
+            return (inversion_count + blank_row_from_bottom) % 2 == 1
 
     def next_moves(self, board: list[list[str]]) -> list[tuple[tuple[str, str], list[list[str]]]]:
         """Return the possible moves and the board states after the moves respectively"""
@@ -318,15 +317,4 @@ class FifteenPuzzleSolver():
 
 if __name__ == "__main__":
     solver = FifteenPuzzleSolver()
-    # solver.x = 3
-    # solver.y = 3
-    # solver.board = [
-    #     ["8", "6", "2"],
-    #     ["7", "_", "4"],
-    #     ["5", "3", "1"],
-    # ]
-    # solver.solution = solver.get_default_solution()
-    # pprint(
-    #     solver.迭代加深A星算法()
-    # )
     solver.play()
