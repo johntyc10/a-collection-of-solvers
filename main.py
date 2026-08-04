@@ -10,7 +10,7 @@ class FifteenPuzzleSolver():
         self.dim, self.board = self.get_user_input()
         self.x, self.y = self.dim
 
-        solvable = self.is_board_solvable()
+        solvable = self.is_board_solvable(self.board)
         if not solvable:
             print("The board is NOT solvable. Check your input and try again.")
             return
@@ -92,8 +92,8 @@ class FifteenPuzzleSolver():
     def count_inversions(self, arr):
         return self.count_inv(arr, 0, len(arr) - 1)
 
-    def is_board_solvable(self):
-        flattened_board = [item for sublist in self.board for item in sublist]
+    def is_board_solvable(self, board: list[list[str]]) -> bool:
+        flattened_board = [item for sublist in board for item in sublist]
         flattened_board_without_blank = [int(item) for item in flattened_board if item != "_"]
         inversion_count = self.count_inversions(flattened_board_without_blank)
 
@@ -102,12 +102,12 @@ class FifteenPuzzleSolver():
             return inversion_count % 2 == 0
         else:
             blank_row_index = -1
-            for i in range(len(self.board)):
-                if "_" in self.board[i]:
+            for i in range(len(board)):
+                if "_" in board[i]:
                     blank_row_index = i
                     break
             assert blank_row_index != -1
-            blank_row_from_bottom = len(self.board) - blank_row_index
+            blank_row_from_bottom = len(board) - blank_row_index
 
             return (inversion_count + blank_row_from_bottom) % 2 == 1
 
