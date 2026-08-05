@@ -1,11 +1,10 @@
-import copy
-from collections import deque
-from pprint import pprint
+import time
+from datetime import timedelta
 
 
 class FifteenPuzzleSolver():
-    def __init__(self) -> None:
-        ...
+    def __init__(self, silent: bool = False) -> None:
+        self.silent = silent
 
     def play(self) -> None:
         self.dim, self.board = self.get_user_input()
@@ -18,9 +17,11 @@ class FifteenPuzzleSolver():
 
         self.solution = self.get_default_solution()
 
+        timestamp = time.time_ns()
         path = self.solve(self.board)
-        print(path)
         assert isinstance(path, list)
+        duration_ns = time.time_ns() - timestamp
+        print(f"Finding the solution took {timedelta(seconds=duration_ns*1e-9)}.")
 
         print("The solution is:")
         for i in range(len(path)):
@@ -225,7 +226,6 @@ class FifteenPuzzleSolver():
         return conflicts
 
     def 迭代加深A星算法(self, board: list[list[str]], depth: int, threshold: int, path: list, last_move_tile: str, 前回のマンハッタン距離: int):  # f = g + h <= threshold
-        # print(f"At depth {depth}, {path = }")
         h = 前回のマンハッタン距離 + self.線性衝突次數(board) * 2
         f = depth + h
         if f > threshold:
@@ -246,6 +246,9 @@ class FifteenPuzzleSolver():
                 continue
 
             self._evaluated_nodes += 1
+            if not self.silent:
+                print("----------------------")
+                print(f"Gone through {self._evaluated_nodes} nodes, max depth = {self._max_depth}")
 
             # calculate new manhattan distance
             # Before applying the move
@@ -301,8 +304,6 @@ class FifteenPuzzleSolver():
             self._max_depth = 0
             self._evaluated_nodes = 0
             t = self.迭代加深A星算法(board, 0, t, [], "", total_manhattan_dist)
-            print("----------------------")
-            print(f"Gone through {self._evaluated_nodes} nodes, max depth = {self._max_depth}")
         return t
 
     def get_user_input(self) -> tuple[tuple[int, int], list[list[str]]]:
@@ -414,17 +415,24 @@ if __name__ == "__main__":
     #     )
     # )
 
-    solver.x = 4
-    solver.y = 4
-    solver.solution = solver.get_default_solution()
-    print(
-        solver.solve([
-                ["2", "13", "10", "6"],
-                ["15", "3", "11", "7"],
-                ["12", "1", "_", "5"],
-                ["9", "8", "4", "14"]
-            ]
-        )
-    )
+    # requires 52 steps to solve; is a hard starting position
+    # solver.x = 4
+    # solver.y = 4
+    # solver.solution = solver.get_default_solution()
+    # print(
+    #     solver.solve([
+    #             ["2", "13", "10", "6"],
+    #             ["15", "3", "11", "7"],
+    #             ["12", "1", "_", "5"],
+    #             ["9", "8", "4", "14"]
+    #         ]
+    #     )
+    # )
+
+    # this takes 60 steps to solve (04:40 evaluation time)
+    # 13 14 12 11
+    # 10 15 7 3
+    # 8 1 _ 5
+    # 6 2 9 4
 
     solver.play()
