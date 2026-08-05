@@ -1,5 +1,6 @@
 import copy
 from collections import deque
+from pprint import pprint
 
 
 class FifteenPuzzleSolver():
@@ -17,7 +18,9 @@ class FifteenPuzzleSolver():
 
         self.solution = self.get_default_solution()
 
-        path = self.迭代加深A星算法()
+        path = self.solve(self.board)
+        print(path)
+        assert isinstance(path, list)
 
         print("The solution is:")
         for i in range(len(path)):
@@ -31,6 +34,12 @@ class FifteenPuzzleSolver():
             for j in range(self.x):
                 default_solution[i][j] = str(self.x * i + j + 1)
         default_solution[self.y - 1][self.x - 1] = "_"
+
+        self.goal_pos = dict()
+        for i in range(self.y):
+            for j in range(self.x):
+                self.goal_pos[default_solution[i][j]] = (i, j)
+
         return default_solution
 
     def count_and_merge(self, arr, l, m, r):
@@ -90,7 +99,14 @@ class FifteenPuzzleSolver():
         return res
 
     def count_inversions(self, arr):
-        return self.count_inv(arr, 0, len(arr) - 1)
+        if len(arr) > 60:
+            return self.count_inv(arr, 0, len(arr) - 1)
+
+        count = 0
+        for i in range(len(arr) - 1):
+            for j in range(i + 1, len(arr)):
+                count += int(arr[i] > arr[j])
+        return count
 
     def is_board_solvable(self, board: list[list[str]]) -> bool:
         flattened_board = [item for sublist in board for item in sublist]
@@ -111,16 +127,8 @@ class FifteenPuzzleSolver():
 
             return (inversion_count + blank_row_from_bottom) % 2 == 1
 
-    def next_moves(self, board: list[list[str]]) -> list[tuple[tuple[str, str], list[list[str]]]]:
-        """Return the possible moves and the board states after the moves respectively"""
-        def next_move(board: list[list[str]], move_tile_idx: tuple, blank_idx: tuple, dir: str) -> tuple[tuple[str, str], list[list[str]]]:
-            move_tile_y, move_tile_x = move_tile_idx
-            blank_y, blank_x = blank_idx
-            move_tile = board[move_tile_y][move_tile_x]
-            next_board_state = copy.deepcopy(board)
-            next_board_state[blank_y][blank_x], next_board_state[move_tile_y][move_tile_x] = next_board_state[move_tile_y][move_tile_x], next_board_state[blank_y][blank_x]  # swap blank and move_tile
-            return (move_tile, dir), next_board_state
-
+    def next_moves(self, board: list[list[str]]) -> list[tuple[tuple[int, int], str]]:
+        """Return the possible moves in a list of (move_tile_idxs, dir)"""
         blank_idx = tuple()
         for i in range(self.y):
             if "_" in board[i]:
@@ -128,27 +136,52 @@ class FifteenPuzzleSolver():
                 break
 
         blank_y, blank_x = blank_idx
-        to_evaluate_tile_move_dir = ["U", "D", "L", "R"]  # eg: if blank is at leftmost, then dont evaluate R (right), because no tiles can move to the right
+        possible_tile_move_dirs = ["U", "D", "L", "R"]  # eg: if blank is at leftmost, then dont evaluate R (right), because no tiles can move to the right
         if blank_x <= 0:
-            to_evaluate_tile_move_dir.remove("R")
+            possible_tile_move_dirs.remove("R")
         if blank_x >= self.x - 1:
-            to_evaluate_tile_move_dir.remove("L")
+            possible_tile_move_dirs.remove("L")
         if blank_y <= 0:
-            to_evaluate_tile_move_dir.remove("D")
+            possible_tile_move_dirs.remove("D")
         if blank_y >= self.y - 1:
-            to_evaluate_tile_move_dir.remove("U")
+            possible_tile_move_dirs.remove("U")
 
         result = []
-        if "R" in to_evaluate_tile_move_dir:
-            result.append(next_move(board, (blank_y, blank_x - 1), blank_idx, "R"))
-        if "L" in to_evaluate_tile_move_dir:
-            result.append(next_move(board, (blank_y, blank_x + 1), blank_idx, "L"))
-        if "D" in to_evaluate_tile_move_dir:
-            result.append(next_move(board, (blank_y - 1, blank_x), blank_idx, "D"))
-        if "U" in to_evaluate_tile_move_dir:
-            result.append(next_move(board, (blank_y + 1, blank_x), blank_idx, "U"))
+        if "R" in possible_tile_move_dirs:
+            result.append(((blank_y, blank_x - 1), "R"))
+        if "L" in possible_tile_move_dirs:
+            result.append(((blank_y, blank_x + 1), "L"))
+        if "D" in possible_tile_move_dirs:
+            result.append(((blank_y - 1, blank_x), "D"))
+        if "U" in possible_tile_move_dirs:
+            result.append(((blank_y + 1, blank_x), "U"))
 
         return result
+
+    def apply_or_undo_move(self, board: list[list[str]], move: tuple[tuple[int, int], str]) -> None:
+        """
+        Apply or undo move to the board in place. They serve the same functionality since applying and undoing move swap the two same tiles.
+        """
+        # Variable names are named in the logic of applying move
+        move_tile_y = move[0][0]
+        move_tile_x = move[0][1]
+        blank_y, blank_x = self.get_blank_idx_by_move(move)
+
+        board[move_tile_y][move_tile_x], board[blank_y][blank_x] = board[blank_y][blank_x], board[move_tile_y][move_tile_x]
+
+    def get_blank_idx_by_move(self, move: tuple[tuple[int, int], str]) -> tuple[int, int]:
+        move_tile_y = move[0][0]
+        move_tile_x = move[0][1]
+        direction = move[1]
+
+        if direction == "R":
+            return move_tile_y, move_tile_x + 1
+        elif direction == "L":
+            return move_tile_y, move_tile_x - 1
+        elif direction == "D":
+            return move_tile_y + 1, move_tile_x
+        elif direction == "U":
+            return move_tile_y - 1, move_tile_x
 
     def is_board_solution(self, board: list[list[str]]):
         flattened_board = [item for sublist in board for item in sublist]
@@ -160,96 +193,117 @@ class FifteenPuzzleSolver():
         return True
 
     def 線性衝突次數(self, board: list[list[str]]) -> int:
-        linear_conflict_count = 0
+        conflicts = 0
 
-        # row
+        # rows
         for i in range(self.y):
-            row = board[i]
-            linear_conflict_count += self.count_inversions([item for item in row if item in self.solution[i]])
+            for c1 in range(self.x):
+                t1 = board[i][c1]
+                if t1 == "_" or self.goal_pos[t1][0] != i:
+                    continue
+                for c2 in range(c1 + 1, self.x):
+                    t2 = board[i][c2]
+                    if t2 == "_" or self.goal_pos[t2][0] != i:
+                        continue
+                    # both belong to this row; check order
+                    if self.goal_pos[t1][1] > self.goal_pos[t2][1]:
+                        conflicts += 1
 
-        # column
+        # columns (same idea)
         for j in range(self.x):
-            board_col = []
-            sol_col = []
-            for i in range(self.y):
-                board_col.append(board[i][j])
-                sol_col.append(self.solution[i][j])
-            linear_conflict_count += self.count_inversions([item for item in board_col if item in sol_col])
+            for r1 in range(self.y):
+                t1 = board[r1][j]
+                if t1 == "_" or self.goal_pos[t1][1] != j:
+                    continue
+                for r2 in range(r1 + 1, self.y):
+                    t2 = board[r2][j]
+                    if t2 == "_" or self.goal_pos[t2][1] != j:
+                        continue
+                    if self.goal_pos[t1][0] > self.goal_pos[t2][0]:
+                        conflicts += 1
 
-        return linear_conflict_count
+        return conflicts
 
-    def マンハッタン距離(self, board: list[list[str]], target: list[list[str]]) -> int:
-        # TODO: incremental manhattan distance calculation
-        # precompute lookup table
+    def 迭代加深A星算法(self, board: list[list[str]], depth: int, threshold: int, path: list, last_move_tile: str, 前回のマンハッタン距離: int):  # f = g + h <= threshold
+        # print(f"At depth {depth}, {path = }")
+        h = 前回のマンハッタン距離 + self.線性衝突次數(board) * 2
+        f = depth + h
+        if f > threshold:
+            return f
+
+        if h == 0:
+            return path
+
+        if depth > self._max_depth:
+            self._max_depth = depth
+
+        min_f_gt_threshold = float("inf")
+        for move in self.next_moves(board):
+            move_tile_y, move_tile_x = move[0]
+            move_tile = board[move_tile_y][move_tile_x]
+            # skip moves that moves the same tile as last move
+            if move_tile == last_move_tile:
+                continue
+
+            self._evaluated_nodes += 1
+
+            # calculate new manhattan distance
+            # Before applying the move
+            tile = board[move_tile_y][move_tile_x]
+            goal_y, goal_x = self.goal_pos[tile]
+
+            # Current contribution of this tile
+            old_contrib = abs(move_tile_y - goal_y) + abs(move_tile_x - goal_x)
+
+            # After the move the tile will be at the blank's current position
+            blank_y, blank_x = self.get_blank_idx_by_move(move)
+            new_contrib = abs(blank_y - goal_y) + abs(blank_x - goal_x)
+
+            マンハッタン距離 = 前回のマンハッタン距離 - old_contrib + new_contrib
+
+            # apply move
+            self.apply_or_undo_move(board, move)
+            path.append((move_tile, move[1]))  # move_tile, dir
+
+            t = self.迭代加深A星算法(board, depth + 1, threshold, path, move_tile, マンハッタン距離)
+            if isinstance(t, list):
+                return t
+            if t < min_f_gt_threshold:
+                min_f_gt_threshold = t
+
+            # undo
+            path.pop()
+            self.apply_or_undo_move(board, move)
+
+        return min_f_gt_threshold
+
+    def solve(self, board):
+        # calculate manhattan distance + linear conflict
         board_element_coords = dict()
         target_element_coords = dict()
         for i in range(self.y):
             for j in range(self.x):
                 board_element_coords[board[i][j]] = (i, j)
-                target_element_coords[target[i][j]] = (i, j)
+                target_element_coords[self.solution[i][j]] = (i, j)
 
         total_manhattan_dist = 0
         for i in range(self.y):
             for j in range(self.x):
+                if board[i][j] == "_":
+                    continue
                 x1, y1 = board_element_coords[board[i][j]]
                 x2, y2 = target_element_coords[board[i][j]]
                 total_manhattan_dist += abs(x2 - x1) + abs(y2 - y1)
 
-        return total_manhattan_dist + self.線性衝突次數(board) * 2
+        t = total_manhattan_dist + self.線性衝突次數(board) * 2
 
-    def 迭代加深A星算法(self) -> list[tuple[str, str]]:  # f = g + h <= threshold
-        # TODO: Use parent pointer and reconstruct path instead of list copying
-        smallest_f_gt_threshold = None
-        while 1:
-            layer_quantity = 1
-            max_depth = 0
-
-            stack = deque()  # list of (path, board)
-            stack.append((self.board, None, None, 0))  # board, parent, move, depth
-
-            threshold = smallest_f_gt_threshold or self.マンハッタン距離(self.board, self.solution)
-            smallest_f_gt_threshold = None
-            print("--------------")
-            print(f"{threshold = }")
-            while stack:
-                current = stack.pop()
-                current_move = current[2]
-                current_depth = current[3]
-                g = current_depth + 1
-                board = current[0]
-                f = g + self.マンハッタン距離(board, self.solution)
-
-                if f - 0.000001 > threshold:  # small bias for preventing float accuracy related bugs
-                    if smallest_f_gt_threshold is None or f < smallest_f_gt_threshold:
-                        smallest_f_gt_threshold = f
-                    continue
-
-                if self.is_board_solution(board):
-                    return self.reconstruct_path(current)
-
-                _next_moves = self.next_moves(board)
-                for move, new_board in _next_moves:
-                    if current_move is not None:
-                        last_move_number = current_move[0]
-                        new_move_number = move[0]
-                        if last_move_number == new_move_number:
-                            continue
-                    child = (new_board, current, move, current_depth + 1)
-                    stack.append(child)
-                    layer_quantity += 1
-                    if current_depth > max_depth:
-                        max_depth = current_depth
-            print(f"{smallest_f_gt_threshold = }")
-            print(f"Looked through {layer_quantity} nodes, max depth = {max_depth}")
-
-    def reconstruct_path(self, target_node):
-        path = []
-        node = target_node
-        while node[1] is not None:
-            path.append(node[2])
-            node = node[1]
-        path.reverse()
-        return path
+        while not isinstance(t, list):
+            self._max_depth = 0
+            self._evaluated_nodes = 0
+            t = self.迭代加深A星算法(board, 0, t, [], "", total_manhattan_dist)
+            print("----------------------")
+            print(f"Gone through {self._evaluated_nodes} nodes, max depth = {self._max_depth}")
+        return t
 
     def get_user_input(self) -> tuple[tuple[int, int], list[list[str]]]:
         """
@@ -347,4 +401,30 @@ class FifteenPuzzleSolver():
 
 if __name__ == "__main__":
     solver = FifteenPuzzleSolver()
+
+    # solver.x = 3
+    # solver.y = 3
+    # solver.solution = solver.get_default_solution()
+    # print(
+    #     solver.solve([
+    #             ["1", "5", "7"],
+    #             ["2", "8", "6"],
+    #             ["_", "3", "4"]
+    #         ]
+    #     )
+    # )
+
+    solver.x = 4
+    solver.y = 4
+    solver.solution = solver.get_default_solution()
+    print(
+        solver.solve([
+                ["2", "13", "10", "6"],
+                ["15", "3", "11", "7"],
+                ["12", "1", "_", "5"],
+                ["9", "8", "4", "14"]
+            ]
+        )
+    )
+
     solver.play()
